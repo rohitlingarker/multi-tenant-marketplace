@@ -223,13 +223,18 @@ No envelope — the listing (or array of listings) is returned directly, matchin
 | WEL-400 | Vitamin D3 2000 IU | WELLNESS |
 
 ### Users
-| ID | Role | Tenant/Vendor |
-|----|------|---|
-| `vendor-a-user` | VENDOR | vendor-a |
-| `vendor-b-user` | VENDOR | vendor-b |
-| `vendor-c-user` | VENDOR | vendor-c |
-| `admin-sunrise` | ADMIN | sunrise-pharmacy |
-| `admin-vitalcare` | ADMIN | vitalcare |
+
+Every seeded user logs in with the password `password123` (all `passwordHash`
+values in `seed-data.json` are `bcrypt("password123")`) — use it for manual
+demo login and anywhere a test needs to call `POST /auth/login`.
+
+| ID | Role | Tenant/Vendor | Password |
+|----|------|---|---|
+| `vendor-a-user` | VENDOR | vendor-a | `password123` |
+| `vendor-b-user` | VENDOR | vendor-b | `password123` |
+| `vendor-c-user` | VENDOR | vendor-c | `password123` |
+| `admin-sunrise` | ADMIN | sunrise-pharmacy | `password123` |
+| `admin-vitalcare` | ADMIN | vitalcare | `password123` |
 
 ---
 

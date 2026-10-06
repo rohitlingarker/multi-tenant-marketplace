@@ -178,6 +178,7 @@ The resolved tenant goes into the request context and flows down as an argument.
 
 - `POST /auth/login` with `{ username, password }`.
 - Passwords are stored in the JSON store as **bcrypt hashes** (`passwordHash`). Never plaintext, never compare raw strings. Pre-generate the hashes when seeding.
+- Every seeded user shares the same demo password, `password123` (every `passwordHash` in the seed data is `bcrypt("password123")`) — use it for manual login and in any test that calls this endpoint.
 - The call goes through all four layers like any other: route → `auth_service.login()` → `users_repo.get_by_username()` → store.
 - On success return the user's id, role, and vendor or tenant association. On failure return a generic `401` — do not reveal whether the username exists.
 - Hackathon-grade session: after login the frontend sends `X-User-Id` on subsequent requests, which the auth middleware resolves to a user. This is deliberately not secure and that is fine; do not build JWT refresh flows.
