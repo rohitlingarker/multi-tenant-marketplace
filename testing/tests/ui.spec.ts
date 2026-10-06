@@ -41,7 +41,7 @@ async function switchStore(page: Page, tenantId: string) {
 async function submitListing(page: Page, sku: string, priceCents: number) {
   await page.goto('/vendor/submit');
   await page.getByTestId('submit-sku-select').selectOption(sku);
-  await page.getByTestId('submit-price-input').fill((priceCents / 100).toFixed(2));
+  await page.getByTestId('submit-price-input').fill(String(priceCents));
   await page.getByTestId('submit-button').click();
 }
 

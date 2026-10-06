@@ -10,11 +10,3 @@ export function parseCents(input: string): number | null {
   const trimmed = input.trim();
   return /^-?\d+$/.test(trimmed) ? Number(trimmed) : null;
 }
-
-/** Parses a dollar amount like "79.99", "80" or "$1,299.5" into whole cents. Null if it isn't a valid amount. */
-export function parseDollarsToCents(input: string): number | null {
-  const trimmed = input.trim().replace(/^\$/, '').replace(/,/g, '');
-  const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(trimmed);
-  if (!match) return null;
-  return Number(match[1]) * 100 + Number((match[2] ?? '').padEnd(2, '0') || 0);
-}
