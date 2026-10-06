@@ -17,23 +17,48 @@ Content-Type: application/json
 
 | Code | Status | When |
 |------|--------|------|
-| `CATEGORY_NOT_ALLOWED` | 400 | Tenant doesn't allow category |
-| `RX_VENDOR_NOT_LICENSED` | 400 | No valid pharmacy license |
-| `DME_VENDOR_NOT_CREDENTIALED` | 400 | No valid DME credential |
-| `PRICE_INVALID` | 400 | Price ≤ 0 or not integer |
+| `CATEGORY_NOT_ALLOWED` | 422 | Tenant doesn't allow category |
+| `RX_VENDOR_NOT_LICENSED` | 422 | No valid pharmacy license |
+| `DME_VENDOR_NOT_CREDENTIALED` | 422 | No valid DME credential |
+| `PRICE_INVALID` | 422 | Price ≤ 0 or not integer |
 | `INVALID_STATUS_TRANSITION` | 409 | Status change not allowed |
-| `REJECTION_REASON_REQUIRED` | 400 | Reject without reason |
+| `REJECTION_REASON_REQUIRED` | 422 | Reject without reason |
 | `FORBIDDEN` | 403 | Role/tenant violation |
-| `NOT_FOUND` | 404 | Resource doesn't exist |
+| `INVALID_CREDENTIALS` | 401 | Login failed — bad username or password, same message either way |
+| (unknown listing in this tenant) | 404 | Resource doesn't exist — no error code, cross-tenant returns 404 too |
 
 ---
 
 ## Endpoints Summary
 
+### 0️⃣ POST /auth/login
+**Role:** public  
+**Body:** `{ "username": "vendor-b-user", "password": "plaintext-from-form" }`  
+**Status:** 200 OK | 401 Unauthorized  
+
+**Response (200, vendor user):**
+```json
+{ "id": "vendor-b-user", "role": "VENDOR", "vendorId": "vendor-b", "tenantId": null }
+```
+
+**Response (200, admin user):**
+```json
+{ "id": "admin-sunrise", "role": "ADMIN", "tenantId": "sunrise-pharmacy", "vendorId": null }
+```
+
+**Response (401 — unknown username or wrong password, same body either way):**
+```json
+{ "error": { "code": "INVALID_CREDENTIALS", "message": "Invalid username or password." } }
+```
+
+Passwords are bcrypt hashes in the store — never compare plaintext. After login, the frontend sends `X-User-Id` on every subsequent request.
+
+---
+
 ### 1️⃣ POST /listings
 **Role:** VENDOR  
 **Body:** `{ "sku": "RX-100", "priceCents": 2999 }`  
-**Status:** 201 Created | 400 Bad Request | 403 Forbidden  
+**Status:** 201 Created | 422 Unprocessable Entity | 403 Forbidden  
 
 **Validation order:**
 1. User is VENDOR
@@ -48,7 +73,6 @@ Content-Type: application/json
 
 ### 2️⃣ GET /listings
 **Role:** VENDOR or ADMIN  
-**Query:** `?status=SUBMITTED&limit=50&offset=0`  
 **Status:** 200 OK | 403 Forbidden  
 
 **Logic:**
@@ -64,21 +88,21 @@ Content-Type: application/json
 
 **Checks:**
 - ADMIN in this tenant
-- Listing in this tenant
-- Status is `SUBMITTED`
+- Listing in this tenant (else 404 — never 403, don't leak existence of other tenants' data)
+- Status is `SUBMITTED` (else `INVALID_STATUS_TRANSITION`, 409)
 
 ---
 
 ### 4️⃣ POST /listings/{listing_id}/reject
 **Role:** ADMIN  
 **Body:** `{ "reason": "reason text" }`  
-**Status:** 200 OK | 400 Bad Request | 404 Not Found | 403 Forbidden  
+**Status:** 200 OK | 422 Unprocessable Entity | 404 Not Found | 403 Forbidden  
 
 **Checks:**
 - ADMIN in this tenant
-- Listing in this tenant
-- Status is `SUBMITTED`
-- `reason` is non-empty
+- Listing in this tenant (else 404)
+- Status is `SUBMITTED` (else `INVALID_STATUS_TRANSITION`, 409)
+- `reason` is non-empty (else `REJECTION_REASON_REQUIRED`, 422)
 
 ---
 
@@ -89,17 +113,16 @@ Content-Type: application/json
 
 **Checks:**
 - ADMIN in this tenant
-- Listing in this tenant
-- Status is `APPROVED` (only approved can delist)
+- Listing in this tenant (else 404)
+- Status is `APPROVED` (only approved can delist, else `INVALID_STATUS_TRANSITION`, 409)
 
 ---
 
 ### 6️⃣ GET /storefront/products
 **Role:** Public (no auth)  
-**Query:** `?category=RX&limit=50&offset=0`  
-**Status:** 200 OK | 403 Forbidden (bad tenant)  
+**Status:** 200 OK | 400 Bad Request (unresolvable tenant)  
 
-**Filter:** `status == APPROVED` only
+**Filter:** `status == APPROVED` only, for the resolved tenant
 
 ---
 
@@ -127,7 +150,7 @@ Content-Type: application/json
 
 ## Tenant Isolation
 
-**Rule:** Every listing must be scoped to the tenant.
+**Rule:** Every listing must be scoped to the tenant. A listing outside the resolved tenant is treated as if it doesn't exist — return 404, not 403, so existence of another tenant's data is never leaked.
 
 ```python
 # Dev 1: Middleware
@@ -135,52 +158,42 @@ user_tenant = request.state.tenant
 listing_tenant = listing["tenantId"]
 
 if user_tenant != listing_tenant:
-    raise HTTPException(403, "FORBIDDEN")
+    raise HTTPException(404, "Listing not found")
 ```
 
 **Test:**
 ```
-Sunrise user tries to view/edit vitalcare listing → 403
+Sunrise user tries to view/edit vitalcare listing → 404
 ```
 
 ---
 
 ## Response Shapes
 
+No envelope — the listing (or array of listings) is returned directly, matching CLAUDE.md section 6.
+
 ### Success (Status 200/201)
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "listing-uuid",
-    "sku": "RX-100",
-    "vendorId": "vendor-a",
-    "vendorName": "Vendor A",
-    "tenantId": "sunrise-pharmacy",
-    "priceCents": 2999,
-    "productName": "Atorvastatin 20mg, 30 tabs",
-    "category": "RX",
-    "status": "SUBMITTED",
-    "rejectionReason": null,
-    "createdAt": "2025-06-15T10:30:00Z",
-    "updatedAt": "2025-06-15T10:30:00Z",
-    "auditLog": [
-      { "action": "CREATED", "userId": "vendor-a-user", "timestamp": "..." }
-    ]
-  }
+  "id": "lst_001",
+  "tenantId": "sunrise-pharmacy",
+  "vendorId": "vendor-b",
+  "sku": "DME-300",
+  "productName": "Digital BP monitor",
+  "category": "DME",
+  "priceCents": 4999,
+  "status": "APPROVED",
+  "rejectionReason": null,
+  "audit": [
+    { "status": "SUBMITTED", "byUserId": "vendor-b-user", "at": "2026-10-06T10:00:00Z" },
+    { "status": "APPROVED",  "byUserId": "admin-sunrise", "at": "2026-10-06T10:05:00Z" }
+  ]
 }
 ```
 
-### Error (Status 400/403/404/409)
+### Error (Status 422/403/404/409)
 ```json
-{
-  "success": false,
-  "error": {
-    "code": "CATEGORY_NOT_ALLOWED",
-    "message": "Sunrise Pharmacy does not allow RX products",
-    "details": { "category": "RX", "tenantId": "sunrise-pharmacy" }
-  }
-}
+{ "error": { "code": "CATEGORY_NOT_ALLOWED", "message": "Sunrise Pharmacy does not allow RX products" } }
 ```
 
 ---
@@ -272,8 +285,8 @@ Sunrise user tries to view/edit vitalcare listing → 403
 
 ## Reminders
 
-✓ **Tenant resolution:** Host header first, X-Tenant-Id overrides  
-✓ **Every response:** Has `success` boolean + `data` or `error`  
+✓ **Tenant resolution:** X-Tenant-Id first, falls back to Host → domain lookup  
+✓ **Every response:** The resource directly on success, `{ error: { code, message } }` on failure — no envelope  
 ✓ **Every listing:** Belongs to exactly one tenant  
 ✓ **Vendor can't see:** Other vendors' listings  
 ✓ **Admin can't see:** Other tenants' listings  

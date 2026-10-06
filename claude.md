@@ -182,6 +182,26 @@ The resolved tenant goes into the request context and flows down as an argument.
 - On success return the user's id, role, and vendor or tenant association. On failure return a generic `401` — do not reveal whether the username exists.
 - Hackathon-grade session: after login the frontend sends `X-User-Id` on subsequent requests, which the auth middleware resolves to a user. This is deliberately not secure and that is fine; do not build JWT refresh flows.
 
+**Request**
+```json
+{ "username": "vendor-b-user", "password": "plaintext-from-form" }
+```
+
+**Response — 200 (vendor user)**
+```json
+{ "id": "vendor-b-user", "role": "VENDOR", "vendorId": "vendor-b", "tenantId": null }
+```
+
+**Response — 200 (admin user)**
+```json
+{ "id": "admin-sunrise", "role": "ADMIN", "tenantId": "sunrise-pharmacy", "vendorId": null }
+```
+
+**Response — 401** (unknown username or wrong password — same body either way)
+```json
+{ "error": { "code": "INVALID_CREDENTIALS", "message": "Invalid username or password." } }
+```
+
 ### RBAC (middleware)
 
 - Vendor route + admin user, or admin route + vendor user → `FORBIDDEN`.
@@ -238,6 +258,10 @@ Tests assert on `code`. The UI shows `message` in plain language. Codes:
 Status mapping: compliance and validation failures → `422`; `FORBIDDEN` → `403`; `INVALID_STATUS_TRANSITION` → `409`; unknown listing **in this tenant** → `404`.
 
 Cross-tenant access returns `404`, not `403` — do not leak the existence of another tenant's data.
+
+### Quick-reference doc
+
+`API_CONTRACT.md` (repo root) mirrors this section as a fast lookup — headers, error codes, per-endpoint checks, seed data IDs, request/response examples. **Consult it when implementing or testing any endpoint.** It is kept in sync with this file; if the two ever disagree, this CLAUDE.md is authoritative and `API_CONTRACT.md` should be corrected to match, not the other way around.
 
 ---
 

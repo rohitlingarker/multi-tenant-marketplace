@@ -1,1 +1,5 @@
 **/node_modules/
+testing/test-results/
+testing/playwright-report/
+testing/blob-report/
+db/store.json
