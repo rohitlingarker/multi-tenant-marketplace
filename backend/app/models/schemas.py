@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictFloat, StrictInt
 
-from app.models.enums import Role
+from app.models.enums import Category, ListingStatus, Role
 
 
 class LoginRequest(BaseModel):
@@ -16,3 +16,30 @@ class UserResponse(BaseModel):
     role: Role
     vendorId: str | None = None
     tenantId: str | None = None
+
+
+class SubmitListingRequest(BaseModel):
+    sku: str = Field(min_length=1)
+    # Floats are accepted here so that a non-integer price reaches the service
+    # and fails as PRICE_INVALID rather than as a generic validation error.
+    priceCents: StrictInt | StrictFloat
+
+
+class AuditEntry(BaseModel):
+    status: ListingStatus
+    byUserId: str
+    at: str
+    reason: str | None = None
+
+
+class ListingResponse(BaseModel):
+    id: str
+    tenantId: str
+    vendorId: str
+    sku: str
+    productName: str
+    category: Category
+    priceCents: int
+    status: ListingStatus
+    rejectionReason: str | None = None
+    audit: list[AuditEntry]
