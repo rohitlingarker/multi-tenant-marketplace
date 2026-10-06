@@ -27,7 +27,7 @@ test.describe('Marketplace UI', () => {
 
     await page.goto('/vendor/submit');
     await page.selectOption('select', SKUS.dme300);
-    await page.fill('input[placeholder*="price" i]', '79.99');
+    await page.fill('input[placeholder*="price" i]', '7999');
     await page.click('button:has-text("Submit")');
 
     await expect(page.locator('text=submitted')).toBeVisible({ timeout: 5000 });
@@ -53,7 +53,7 @@ test.describe('Marketplace UI', () => {
     await actAs(page, USERS.vendorA, TENANTS.vitalcare);
     await page.goto('/vendor/submit');
     await page.selectOption('select', SKUS.rx100);
-    await page.fill('input[placeholder*="price" i]', '29.99');
+    await page.fill('input[placeholder*="price" i]', '2999');
     await page.click('button:has-text("Submit")');
 
     await expect(page.locator('text=does not allow')).toBeVisible({ timeout: 5000 });
@@ -64,7 +64,7 @@ test.describe('Marketplace UI', () => {
     await actAs(page, USERS.vendorC, TENANTS.sunrise);
     await page.goto('/vendor/submit');
     await page.selectOption('select', SKUS.dme301);
-    await page.fill('input[placeholder*="price" i]', '59.99');
+    await page.fill('input[placeholder*="price" i]', '5999');
     await page.click('button:has-text("Submit")');
 
     await expect(page.locator('text=credential')).toBeVisible({ timeout: 5000 });
@@ -75,7 +75,7 @@ test.describe('Marketplace UI', () => {
     await actAs(page, USERS.vendorB, TENANTS.sunrise);
     await page.goto('/vendor/submit');
     await page.selectOption('select', SKUS.dme300);
-    await page.fill('input[placeholder*="price" i]', '79.99');
+    await page.fill('input[placeholder*="price" i]', '7999');
     await page.click('button:has-text("Submit")');
 
     await actAs(page, USERS.adminSunrise, TENANTS.sunrise);
