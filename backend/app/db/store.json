@@ -106,5 +106,27 @@
       "passwordHash": "$2b$12$VuGgxdGpUeeX/8PtzHlVW.kxzH3FdBd.nkCRC.ShoehX.5PQWXKJ6"
     }
   ],
-  "listings": []
+  "listings": [
+    {
+      "vendorId": "vendor-b",
+      "sku": "DME-300",
+      "priceCents": 4999,
+      "status": "APPROVED",
+      "rejectionReason": null,
+      "audit": [
+        {
+          "status": "SUBMITTED",
+          "byUserId": "vendor-b-user",
+          "at": "2026-10-06T04:22:08Z"
+        },
+        {
+          "status": "APPROVED",
+          "byUserId": "admin-sunrise",
+          "at": "2026-10-06T04:22:08Z"
+        }
+      ],
+      "id": "lst_001",
+      "tenantId": "sunrise-pharmacy"
+    }
+  ]
 }

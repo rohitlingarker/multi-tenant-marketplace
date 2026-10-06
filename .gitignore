@@ -3,3 +3,5 @@ testing/test-results/
 testing/playwright-report/
 testing/blob-report/
 db/store.json
+**/__pycache__/
+*.pyc
