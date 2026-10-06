@@ -11,8 +11,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body>
         <IdentityProvider>
-          <Header />
-          <main>{children}</main>
+          <div className="shell">
+            <Header />
+            <main>{children}</main>
+          </div>
         </IdentityProvider>
       </body>
     </html>

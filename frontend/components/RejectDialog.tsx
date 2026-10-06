@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import ErrorBanner from './ErrorBanner';
+import ListingSummary from './ListingSummary';
 import { api } from '@/lib/api';
 import type { ApiError, Listing } from '@/lib/types';
 
@@ -30,9 +31,8 @@ export default function RejectDialog({
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label={`Reject ${listing.sku}`}>
       <div className="dialog">
-        <h3>
-          Reject {listing.productName} ({listing.sku})
-        </h3>
+        <h3>Reject listing</h3>
+        <ListingSummary listing={listing} />
         <label htmlFor="reject-reason">Reason (the vendor will see this)</label>
         <textarea
           id="reject-reason"
@@ -40,7 +40,7 @@ export default function RejectDialog({
           rows={4}
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          placeholder="e.g. Product photos missing"
+          placeholder="Please provide a reason, e.g. Incomplete vendor documentation"
         />
         <ErrorBanner error={error} testId="reject-error" />
         <div className="row">

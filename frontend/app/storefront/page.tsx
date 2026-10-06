@@ -15,7 +15,7 @@ export default function StorefrontPage() {
   return (
     <>
       <h1>{storeName}</h1>
-      <p className="sub">Approved products available in this store.</p>
+      <p className="sub">Our products. Only listings approved by this store's admin appear here.</p>
       <ErrorBanner error={error} />
       {loading ? (
         <p className="empty">Loading…</p>
@@ -27,9 +27,10 @@ export default function StorefrontPage() {
         <div className="grid">
           {items.map((l) => (
             <article key={l.listingId} className="product" data-testid={`storefront-item-${l.sku}`}>
+              <span className="chip-cat">{l.category}</span>
               <strong>{l.productName}</strong>
               <div className="meta">
-                {l.sku} · {l.category} · {l.vendorName}
+                {l.sku} · Sold by {l.vendorName}
               </div>
               <div className="price">{centsToDollars(l.priceCents)}</div>
             </article>

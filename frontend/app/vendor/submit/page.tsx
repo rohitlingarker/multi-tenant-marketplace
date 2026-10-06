@@ -6,7 +6,7 @@ import ErrorBanner from '@/components/ErrorBanner';
 import RoleGate from '@/components/RoleGate';
 import { api } from '@/lib/api';
 import { useIdentity } from '@/lib/identity';
-import { parseCents } from '@/lib/money';
+import { centsToDollars, parseDollarsToCents } from '@/lib/money';
 import { PRODUCTS, TENANTS } from '@/lib/seed';
 import type { ApiError } from '@/lib/types';
 
@@ -17,14 +17,16 @@ function SubmitForm() {
   const [price, setPrice] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
+  const previewCents = parseDollarsToCents(price);
   const storeName = TENANTS.find((t) => t.id === tenantId)?.name ?? tenantId;
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    const cents = parseCents(price);
+    const cents = parseDollarsToCents(price);
     if (cents === null || cents <= 0) {
-      setError({ code: 'PRICE_INVALID', message: '' }); // server stays authoritative; this just saves a round trip
+      // server stays authoritative; this just saves a round trip
+      setError({ code: 'PRICE_INVALID', message: 'Enter a price greater than $0.00, like 79.99.' });
       return;
     }
     setBusy(true);
@@ -50,15 +52,20 @@ function SubmitForm() {
           ))}
         </select>
 
-        <label htmlFor="price">Price (in cents)</label>
+        <label htmlFor="price">Price (USD)</label>
         <input
           id="price"
           data-testid="submit-price-input"
-          inputMode="numeric"
-          placeholder="price in cents, e.g. 7999 = $79.99"
+          inputMode="decimal"
+          placeholder="price in dollars, e.g. 79.99"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
         />
+        {previewCents !== null && previewCents > 0 && (
+          <p className="hint" data-testid="submit-price-preview">
+            Will be listed at {centsToDollars(previewCents)} ({previewCents.toLocaleString('en-US')} cents)
+          </p>
+        )}
 
         <ErrorBanner error={error} testId="submit-error" />
         <div className="row">

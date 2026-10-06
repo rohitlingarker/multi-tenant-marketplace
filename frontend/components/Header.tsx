@@ -5,37 +5,50 @@ import { usePathname, useRouter } from 'next/navigation';
 import IdentitySwitcher from './IdentitySwitcher';
 import { useIdentity } from '@/lib/identity';
 
+/** Left sidebar: brand, current store, role-based navigation, and the signed-in user. */
 export default function Header() {
-  const { ready, userId, role, logout } = useIdentity();
+  const { ready, userId, tenantId, role, logout } = useIdentity();
   const path = usePathname();
   const router = useRouter();
   const links = [
     ...(role === 'VENDOR'
       ? [
-          { href: '/vendor/submit', label: 'Submit listing' },
-          { href: '/vendor/my-listings', label: 'My listings' },
+          { href: '/vendor/submit', label: 'Submit listing', icon: '+' },
+          { href: '/vendor/my-listings', label: 'My listings', icon: '≡' },
         ]
       : []),
-    ...(role === 'ADMIN' ? [{ href: '/admin/review', label: 'Review queue' }] : []),
-    { href: '/storefront', label: 'Storefront' },
+    ...(role === 'ADMIN' ? [{ href: '/admin/review', label: 'Review queue', icon: '✓' }] : []),
+    { href: '/storefront', label: 'Storefront', icon: '▦' },
   ];
 
   return (
-    <header className="top">
-      <nav>
-        <span className="brand">Regulated Marketplace</span>
+    <aside className="sidebar">
+      <div className="brand">Regulated Marketplace</div>
+
+      <div className="store-card" data-testid="current-store">
+        <IdentitySwitcher />
+      </div>
+
+      <nav aria-label="Main">
         {links.map((l) => (
           <Link key={l.href} href={l.href} className={path === l.href ? 'active' : ''}>
+            <span className="nav-icon" aria-hidden="true">
+              {l.icon}
+            </span>
             {l.label}
           </Link>
         ))}
-        <span className="spacer" />
+      </nav>
+
+      <div className="sidebar-foot">
         {ready &&
           (userId ? (
             <>
-              <span className="who" data-testid="current-user">
-                {userId}
-              </span>
+              <div className="who-block">
+                <span className="who" data-testid="current-user">
+                  {userId}
+                </span>
+              </div>
               <button
                 type="button"
                 className="btn btn-sm"
@@ -49,12 +62,11 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <Link href="/login" className={path === '/login' ? 'active' : ''} data-testid="login-link">
+            <Link href="/login" className="btn btn-primary btn-sm" data-testid="login-link">
               Log in
             </Link>
           ))}
-      </nav>
-      <IdentitySwitcher />
-    </header>
+      </div>
+    </aside>
   );
 }
