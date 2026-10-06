@@ -5,3 +5,4 @@ testing/blob-report/
 **/db/store.json
 **/__pycache__/
 *.pyc
+**/db/audit.log

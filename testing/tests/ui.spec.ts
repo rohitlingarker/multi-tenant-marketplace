@@ -41,8 +41,14 @@ async function switchStore(page: Page, tenantId: string) {
 async function submitListing(page: Page, sku: string, priceCents: number) {
   await page.goto('/vendor/submit');
   await page.getByTestId('submit-sku-select').selectOption(sku);
-  await page.getByTestId('submit-price-input').fill(String(priceCents));
+  await page.getByTestId('submit-price-input').fill((priceCents / 100).toFixed(2));
   await page.getByTestId('submit-button').click();
+}
+
+async function approveRow(page: Page, row: ReturnType<Page['locator']>) {
+  await row.getByTestId(/^approve-button-/).click();
+  await page.getByTestId('approve-confirm').click();
+  await expect(page.getByTestId('approve-success')).toBeVisible({ timeout: 3000 });
 }
 
 test.describe('Marketplace UI', () => {
@@ -53,14 +59,14 @@ test.describe('Marketplace UI', () => {
 
     await expect(page).toHaveURL(/\/vendor\/my-listings/);
     await expect(page.getByTestId('submit-success')).toContainText(SKUS.dme300);
-    await expect(page.getByTestId('listing-status')).toHaveText('SUBMITTED');
+    await expect(page.getByTestId('listing-status')).toHaveText('Awaiting review');
 
     await logout(page);
     await login(page, USERS.adminSunrise);
 
     const row = page.locator('tr', { hasText: SKUS.dme300 });
     await expect(row).toBeVisible();
-    await row.getByTestId(/^approve-button-/).click();
+    await approveRow(page, row);
     // Approving moves the row from the review queue into "Live on
     // storefront" on the same page — it doesn't disappear, it gets a
     // Delist button instead of Approve/Reject.
@@ -100,7 +106,7 @@ test.describe('Marketplace UI', () => {
     await logout(page);
     await login(page, USERS.adminSunrise);
     const row = page.locator('tr', { hasText: SKUS.dme300 });
-    await row.getByTestId(/^approve-button-/).click();
+    await approveRow(page, row);
 
     await logout(page);
     await switchStore(page, TENANTS.vitalcare);
