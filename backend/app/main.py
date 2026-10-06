@@ -6,6 +6,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.routes import auth, listings, storefront
 from app.core.errors import DomainError, http_status_for
+from app.middleware.audit import AuditLogMiddleware
 from app.middleware.auth import resolve_user
 from app.middleware.tenant import resolve_tenant
 from app.repositories import json_store
@@ -22,6 +23,7 @@ app = FastAPI(title="Multi-tenant Marketplace", lifespan=lifespan)
 # Starlette runs the last-added middleware first: tenant -> auth -> (RBAC per route).
 app.add_middleware(BaseHTTPMiddleware, dispatch=resolve_user)
 app.add_middleware(BaseHTTPMiddleware, dispatch=resolve_tenant)
+app.add_middleware(AuditLogMiddleware)  # outermost: logs every request, whatever the outcome
 
 
 @app.exception_handler(DomainError)
