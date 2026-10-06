@@ -4,9 +4,14 @@ from app.core.errors import Forbidden, TenantNotResolved, Unauthenticated
 from app.models.enums import Role
 
 
-def authorize(ctx: RequestContext, *allowed_roles: Role) -> None:
+def require_tenant(ctx: RequestContext) -> None:
+    """For public, tenant-scoped routes (e.g. the storefront): no user needed."""
     if ctx.tenant is None:
         raise TenantNotResolved()
+
+
+def authorize(ctx: RequestContext, *allowed_roles: Role) -> None:
+    require_tenant(ctx)
     if ctx.user is None:
         raise Unauthenticated()
     if ctx.role not in {r.value for r in allowed_roles}:

@@ -60,6 +60,13 @@ class InvalidStatusTransition(DomainError):
         super().__init__(f"Cannot move a listing from {current} to {target}.")
 
 
+class RejectionReasonRequired(DomainError):
+    code = "REJECTION_REASON_REQUIRED"
+
+    def __init__(self):
+        super().__init__("A reason is required to reject a listing.")
+
+
 class ComplianceError(DomainError):
     """Raised with one of the compliance codes (CATEGORY_NOT_ALLOWED, PRICE_INVALID, ...)."""
 

@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.api.routes import auth, listings
+from app.api.routes import auth, listings, storefront
 from app.core.errors import DomainError, http_status_for
 from app.middleware.auth import resolve_user
 from app.middleware.tenant import resolve_tenant
@@ -34,3 +34,4 @@ def domain_error_handler(request: Request, exc: DomainError) -> JSONResponse:
 
 app.include_router(auth.router)
 app.include_router(listings.router)
+app.include_router(storefront.router)

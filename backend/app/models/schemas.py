@@ -25,6 +25,24 @@ class SubmitListingRequest(BaseModel):
     priceCents: StrictInt | StrictFloat
 
 
+class StorefrontProduct(BaseModel):
+    """Public view of an approved listing: no audit trail or internal status."""
+
+    listingId: str
+    sku: str
+    productName: str
+    category: Category
+    priceCents: int
+    vendorId: str
+    vendorName: str
+
+
+class RejectListingRequest(BaseModel):
+    # Optional here so a missing/blank reason fails in the service as
+    # REJECTION_REASON_REQUIRED rather than as a generic validation error.
+    reason: str | None = None
+
+
 class AuditEntry(BaseModel):
     status: ListingStatus
     byUserId: str

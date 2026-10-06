@@ -34,10 +34,13 @@ def update(tenant_id: str, listing_id: str, changes: dict) -> dict | None:
     return json_store.snapshot(listing)
 
 
-def list_by_tenant(tenant_id: str, vendor_id: str | None = None) -> list[dict]:
+def list_by_tenant(
+    tenant_id: str, vendor_id: str | None = None, status: str | None = None
+) -> list[dict]:
     return [
         json_store.snapshot(listing)
         for listing in json_store.collection("listings")
         if listing["tenantId"] == tenant_id
         and (vendor_id is None or listing["vendorId"] == vendor_id)
+        and (status is None or listing["status"] == status)
     ]

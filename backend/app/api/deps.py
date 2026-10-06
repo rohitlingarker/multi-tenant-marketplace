@@ -20,5 +20,10 @@ def require_roles(*roles: Role):
     return dependency
 
 
+def tenant_context(ctx: RequestContext = Depends(get_context)) -> RequestContext:
+    rbac.require_tenant(ctx)
+    return ctx
+
+
 vendor_context = require_roles(Role.VENDOR)
 admin_context = require_roles(Role.ADMIN)

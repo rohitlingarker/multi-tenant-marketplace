@@ -6,6 +6,7 @@ from app.core.errors import (
     InvalidStatusTransition,
     ListingNotFound,
     ProductNotFound,
+    RejectionReasonRequired,
 )
 from app.models.enums import ListingStatus, Role
 from app.repositories import listings_repo, products_repo, vendors_repo
@@ -30,7 +31,11 @@ def _with_product(listing: dict, product: dict) -> dict:
 
 
 def _transition(
-    ctx: RequestContext, listing_id: str, target: ListingStatus, reason: str | None = None
+    ctx: RequestContext,
+    listing_id: str,
+    target: ListingStatus,
+    reason: str | None = None,
+    extra_changes: dict | None = None,
 ) -> dict:
     """Move a listing to `target`, appending to its audit trail. Shared by approve/reject/delist."""
     listing = listings_repo.get_by_id(ctx.tenant_id, listing_id)
@@ -48,13 +53,23 @@ def _transition(
     updated = listings_repo.update(
         ctx.tenant_id,
         listing_id,
-        {"status": target.value, "audit": [*listing["audit"], entry]},
+        {"status": target.value, "audit": [*listing["audit"], entry], **(extra_changes or {})},
     )
     return _with_product(updated, products_repo.get_by_sku(updated["sku"]))
 
 
 def approve_listing(ctx: RequestContext, listing_id: str) -> dict:
     return _transition(ctx, listing_id, ListingStatus.APPROVED)
+
+
+def reject_listing(ctx: RequestContext, listing_id: str, reason: str | None) -> dict:
+    reason = (reason or "").strip()
+    if not reason:
+        raise RejectionReasonRequired()
+    return _transition(
+        ctx, listing_id, ListingStatus.REJECTED, reason=reason,
+        extra_changes={"rejectionReason": reason},
+    )
 
 
 def list_listings(ctx: RequestContext) -> list[dict]:
@@ -98,3 +113,28 @@ def submit_listing(ctx: RequestContext, sku: str, price_cents: int | float) -> d
         },
     )
     return _with_product(listing, product)
+
+
+def delist_listing(ctx: RequestContext, listing_id: str) -> dict:
+    return _transition(ctx, listing_id, ListingStatus.DELISTED)
+
+
+def list_storefront(ctx: RequestContext) -> list[dict]:
+    """Only APPROVED listings, only for the resolved tenant."""
+    listings = listings_repo.list_by_tenant(ctx.tenant_id, status=ListingStatus.APPROVED.value)
+    products = []
+    for listing in listings:
+        product = products_repo.get_by_sku(listing["sku"])
+        vendor = vendors_repo.get_by_id(listing["vendorId"])
+        products.append(
+            {
+                "listingId": listing["id"],
+                "sku": listing["sku"],
+                "productName": product["name"],
+                "category": product["category"],
+                "priceCents": listing["priceCents"],
+                "vendorId": listing["vendorId"],
+                "vendorName": vendor["name"],
+            }
+        )
+    return products
