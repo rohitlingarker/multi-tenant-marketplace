@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIdentity } from './identity';
-import type { ApiError, ApiResult, Listing } from './types';
+import type { ApiError, ApiResult } from './types';
 
 /**
  * Loads a list for the current identity. Clears the list on every user/tenant switch
  * so one tenant's data never lingers on screen, then refetches.
  */
-export function useListings(fetcher: () => Promise<ApiResult<Listing[]>>) {
+export function useListings<T>(fetcher: () => Promise<ApiResult<T[]>>) {
   const { ready, version } = useIdentity();
-  const [items, setItems] = useState<Listing[]>([]);
+  const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const fetcherRef = useRef(fetcher);

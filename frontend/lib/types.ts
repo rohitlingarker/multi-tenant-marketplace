@@ -22,6 +22,17 @@ export interface Listing {
   audit: AuditEntry[];
 }
 
+/** Item shape from GET /storefront/products: the public view of an approved listing. */
+export interface StorefrontProduct {
+  listingId: string;
+  sku: string;
+  productName: string;
+  category: Category;
+  priceCents: number;
+  vendorId: string;
+  vendorName: string;
+}
+
 export interface ApiError {
   code: string;
   message: string;
@@ -33,6 +44,8 @@ export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError 
 export interface Identity {
   userId: string | null;
   tenantId: string;
+  /** Taken from the POST /auth/login response, not guessed from the user id. */
+  role: Role | null;
 }
 
 /** Shape returned by POST /auth/login. */

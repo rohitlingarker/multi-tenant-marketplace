@@ -26,10 +26,10 @@ export default function StorefrontPage() {
       ) : (
         <div className="grid">
           {items.map((l) => (
-            <article key={l.id} className="product" data-testid={`storefront-item-${l.sku}`}>
+            <article key={l.listingId} className="product" data-testid={`storefront-item-${l.sku}`}>
               <strong>{l.productName}</strong>
               <div className="meta">
-                {l.sku} · {l.category}
+                {l.sku} · {l.category} · {l.vendorName}
               </div>
               <div className="price">{centsToDollars(l.priceCents)}</div>
             </article>
