@@ -35,13 +35,14 @@ verify against `password123` (confirmed against `backend/app/db/seed-data.json`
 — no plaintext is committed anywhere); override with `TEST_PASSWORD` if that
 ever changes.
 
-UI tests additionally need the frontend on `http://localhost:3000`
-(override with `FRONTEND_URL`) and are skipped until it exists — set
-`FRONTEND_READY=1` once `/vendor/submit`, `/admin/review` and `/storefront`
-are built:
+UI tests additionally need the frontend running on `http://localhost:3000`
+(`npm run dev` in `frontend/`, override with `FRONTEND_URL`) on top of the
+backend. They drive the real screens via their `data-testid` attributes —
+login, submit, admin review, storefront — and fail with a normal connection
+error if either server isn't up, same as the API tests:
 
 ```bash
-FRONTEND_READY=1 npm run test:ui
+npm run test:ui
 ```
 
 Everything:
@@ -62,4 +63,12 @@ npm run report   # open the HTML report from the last run
 - `tests/auth.spec.ts` — `POST /auth/login` (not one of the 8, but still a
   contract endpoint every other spec bypasses via `X-User-Id`).
 - `tests/ui.spec.ts` — happy path + rejection flows through the actual
-  screens, gated on `FRONTEND_READY`.
+  screens (login, vendor submit, admin review, storefront, tenant switcher).
+
+## Test isolation
+
+Every test (API, auth, and UI) resets the backend's in-memory store back to
+`seed-data.json` in a `beforeEach`, via a QA-only route:
+`POST /__test__/reset` (`backend/app/api/routes/testing.py`). Not part of the
+public API contract — it exists purely so tests don't leak listings into
+each other on the one shared dev server.

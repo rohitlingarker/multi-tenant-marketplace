@@ -60,4 +60,13 @@ export const test = base.extend<ApiFixtures>({
   },
 });
 
+// Reloads the backend's in-memory store from seed-data.json before every
+// test (same effect as restarting the app — see json_store.load()), so
+// tests don't leak listings into each other via the shared dev server.
+// Hits a QA-only route (backend/app/api/routes/testing.py), not part of
+// the public API contract.
+test.beforeEach(async ({ request }) => {
+  await request.post(`${BACKEND_URL}/__test__/reset`);
+});
+
 export { expect };

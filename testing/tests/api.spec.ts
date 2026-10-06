@@ -157,6 +157,10 @@ test.describe('Approval lifecycle', () => {
 
 test.describe('Storefront', () => {
   // Criterion 6 & 7
+  // Asserts by listing id, not sku: multiple listings can legitimately share
+  // a sku (same product, resubmitted, or another test run earlier in this
+  // suite), so a sku-based check can false-positive/negative on leftover
+  // state from prior tests sharing one live server/store.
   test('approved listing appears on its tenant storefront; rejected does not', async ({ apiRequest }) => {
     const approved = await apiRequest('/listings', {
       method: 'POST',
@@ -164,11 +168,12 @@ test.describe('Storefront', () => {
       userId: USERS.vendorB,
       tenantId: TENANTS.sunrise,
     });
-    await apiRequest(`/listings/${approved.body.id}/approve`, {
+    const approveResult = await apiRequest(`/listings/${approved.body.id}/approve`, {
       method: 'POST',
       userId: USERS.adminSunrise,
       tenantId: TENANTS.sunrise,
     });
+    expect(approveResult.ok).toBe(true);
 
     const rejected = await apiRequest('/listings', {
       method: 'POST',
@@ -176,20 +181,22 @@ test.describe('Storefront', () => {
       userId: USERS.vendorB,
       tenantId: TENANTS.sunrise,
     });
-    await apiRequest(`/listings/${rejected.body.id}/reject`, {
+    const rejectResult = await apiRequest(`/listings/${rejected.body.id}/reject`, {
       method: 'POST',
       body: { reason: 'Pricing error' },
       userId: USERS.adminSunrise,
       tenantId: TENANTS.sunrise,
     });
+    expect(rejectResult.ok).toBe(true);
 
     const storefront = await apiRequest('/storefront/products', {
       tenantId: TENANTS.sunrise,
     });
 
-    const skus = storefront.body.map((p: any) => p.sku);
-    expect(skus).toContain(SKUS.dme300);
-    expect(skus).not.toContain(SKUS.wel400);
+    // Storefront entries use `listingId`, not `id` like the listing response.
+    const ids = storefront.body.map((p: any) => p.listingId);
+    expect(ids).toContain(approved.body.id);
+    expect(ids).not.toContain(rejected.body.id);
   });
 
   // Criterion 8
