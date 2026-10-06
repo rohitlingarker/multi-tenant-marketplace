@@ -271,3 +271,24 @@ Compare expiry dates against `datetime.now(timezone.utc)`. Absent credential fie
 3. Vendor C's DME-301 submission → `DME_VENDOR_NOT_CREDENTIALED`
 
 If a piece of work does not serve one of these three, it is below the cut line.
+
+---
+
+## 9. QA — quality ownership
+
+Full detail in `QA_QUALITY_OWNER.md`; the essentials every contributor should know:
+
+- QA owns: the 8 acceptance criteria (below), the Playwright suite (`e2e/`, TypeScript — `api.spec.ts` + `ui.spec.ts`), the 25-min standup report, the demo script, and the final ship/no-ship call.
+- **Top 8 acceptance criteria** (what "ship" means):
+  1. Vendor can submit a listing with SKU + price
+  2. Submission rejected for disallowed category (vitalcare rejects RX) → `CATEGORY_NOT_ALLOWED`
+  3. Submission rejected for expired/missing license or credential (vendor-c DME) → `DME_VENDOR_NOT_CREDENTIALED` / `RX_VENDOR_NOT_LICENSED`
+  4. Submission rejected for invalid price (≤0) → `PRICE_INVALID`
+  5. Admin can approve a `SUBMITTED` listing
+  6. Approved listing appears on storefront for that tenant only
+  7. Rejected listing never appears on storefront
+  8. Tenant isolation: one tenant's listings are invisible to another
+- API tests hit the backend directly with `X-User-Id` / `X-Tenant-Id` headers (see fixture pattern in `QA_QUALITY_OWNER.md`) — they assert on the error `code`, matching section 6's contract. Any change to error codes, status mapping, or response shape breaks these tests; keep the contract and the suite in sync.
+- UI tests drive the vendor submit → admin approve → storefront flow and the two rejection-error flows end-to-end.
+- No-ship triggers: any acceptance criterion failing, tenant data leaking across tenants, 500s/crashes on the demo path, error codes not matching the contract, or the demo timing out.
+- Treat the 8 criteria as the contract test suite depends on — don't change API behavior without checking QA's spec files for the assumptions baked in (header names, field names, error codes).
