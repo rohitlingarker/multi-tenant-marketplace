@@ -21,6 +21,7 @@ function ReviewQueue() {
 
   const queue = items.filter((l) => l.status === 'SUBMITTED');
   const live = items.filter((l) => l.status === 'APPROVED');
+  const rejected = items.filter((l) => l.status === 'REJECTED');
 
   async function run(listing: Listing, action: (id: string) => ReturnType<typeof api.approve>) {
     setBusyId(listing.id);
@@ -93,6 +94,15 @@ function ReviewQueue() {
                   </button>
                 )}
               />
+            </>
+          )}
+
+          {rejected.length > 0 && (
+            <>
+              <h2>Rejected</h2>
+              <div data-testid="rejected-section">
+                <ListingTable listings={rejected} showVendor showReason reasonLabel="Reason you gave:" />
+              </div>
             </>
           )}
         </>

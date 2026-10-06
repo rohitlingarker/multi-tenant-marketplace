@@ -232,3 +232,6 @@ nav .spacer { flex: 1; }
 @media (max-width: 800px) {
   .login-layout { grid-template-columns: 1fr; gap: 28px; }
 }
+
+.chip-cat { display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; background: #eef2f7; color: #334155; border: 1px solid var(--line); }
+.hint { margin: 6px 0 0; color: var(--muted); font-size: 14px; }

@@ -15,6 +15,14 @@ export const TENANTS = [
   { id: 'vitalcare', name: 'VitalCare' },
 ];
 
+export const VENDORS: Record<string, string> = {
+  'vendor-a': 'Vendor A',
+  'vendor-b': 'Vendor B',
+  'vendor-c': 'Vendor C',
+};
+
+export const vendorName = (vendorId: string): string => VENDORS[vendorId] ?? vendorId;
+
 export const USERS: { id: string; label: string; role: Role; tenantId?: string }[] = [
   { id: 'vendor-a-user', label: 'Vendor A', role: 'VENDOR' },
   { id: 'vendor-b-user', label: 'Vendor B', role: 'VENDOR' },
