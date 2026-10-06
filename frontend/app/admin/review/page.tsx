@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import ApproveDialog from '@/components/ApproveDialog';
 import ErrorBanner from '@/components/ErrorBanner';
 import ListingTable from '@/components/ListingTable';
 import RejectDialog from '@/components/RejectDialog';
@@ -17,11 +19,14 @@ function ReviewQueue() {
   const [actionError, setActionError] = useState<ApiError | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<Listing | null>(null);
+  const [approving, setApproving] = useState<Listing | null>(null);
+  const [approved, setApproved] = useState<Listing | null>(null);
   const storeName = TENANTS.find((t) => t.id === tenantId)?.name ?? tenantId;
 
   const queue = items.filter((l) => l.status === 'SUBMITTED');
   const live = items.filter((l) => l.status === 'APPROVED');
   const rejected = items.filter((l) => l.status === 'REJECTED');
+  const delisted = items.filter((l) => l.status === 'DELISTED');
 
   async function run(listing: Listing, action: (id: string) => ReturnType<typeof api.approve>) {
     setBusyId(listing.id);
@@ -38,6 +43,19 @@ function ReviewQueue() {
       <p className="sub">Submitted listings for {storeName}. Compliance checks already passed at submission.</p>
       <ErrorBanner error={error} />
       <ErrorBanner error={actionError} testId="action-error" />
+      {approved && (
+        <div className="banner banner-ok success-card" data-testid="approve-success">
+          <div>
+            <strong>Listing approved</strong>
+            <div>
+              {approved.productName} ({approved.sku}) has been approved successfully.
+            </div>
+          </div>
+          <Link href="/storefront" className="btn btn-sm">
+            View in Storefront
+          </Link>
+        </div>
+      )}
 
       {loading ? (
         <p className="empty">Loading…</p>
@@ -58,7 +76,7 @@ function ReviewQueue() {
                     className="btn btn-primary"
                     data-testid={`approve-button-${l.id}`}
                     disabled={busyId === l.id}
-                    onClick={() => run(l, api.approve)}
+                    onClick={() => setApproving(l)}
                   >
                     Approve
                   </button>
@@ -105,7 +123,28 @@ function ReviewQueue() {
               </div>
             </>
           )}
+
+          {delisted.length > 0 && (
+            <>
+              <h2>Delisted</h2>
+              <div data-testid="delisted-section">
+                <ListingTable listings={delisted} showVendor />
+              </div>
+            </>
+          )}
         </>
+      )}
+
+      {approving && (
+        <ApproveDialog
+          listing={approving}
+          onClose={() => setApproving(null)}
+          onDone={(l) => {
+            setApproving(null);
+            setApproved(l);
+            refetch();
+          }}
+        />
       )}
 
       {rejecting && (

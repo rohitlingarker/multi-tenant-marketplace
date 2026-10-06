@@ -38,8 +38,10 @@ test.describe('Marketplace UI', () => {
     await actAs(page, USERS.adminSunrise, TENANTS.sunrise);
     await page.goto('/admin/review');
     await expect(page.locator(`text=${SKUS.dme300}`)).toBeVisible();
-    await page.click('button:has-text("Approve")');
-    await expect(page.locator(`text=${SKUS.dme300}`)).not.toBeVisible({ timeout: 3000 });
+    await page.click('[data-testid^="approve-button-"]');
+    await page.click('[data-testid="approve-confirm"]');
+    await expect(page.locator('[data-testid="approve-success"]')).toBeVisible({ timeout: 3000 });
+    await expect(page.locator('[data-testid^="approve-button-"]')).toHaveCount(0);
 
     await page.goto('/storefront');
     await expect(page.locator(`text=${SKUS.dme300}`)).toBeVisible();
@@ -78,7 +80,9 @@ test.describe('Marketplace UI', () => {
 
     await actAs(page, USERS.adminSunrise, TENANTS.sunrise);
     await page.goto('/admin/review');
-    await page.click('button:has-text("Approve")');
+    await page.click('[data-testid^="approve-button-"]');
+    await page.click('[data-testid="approve-confirm"]');
+    await expect(page.locator('[data-testid="approve-success"]')).toBeVisible({ timeout: 3000 });
 
     await actAs(page, USERS.adminSunrise, TENANTS.vitalcare);
     await page.goto('/storefront');

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import AuditTrail from './AuditTrail';
 import StatusBadge from './StatusBadge';
 import { centsToDollars } from '@/lib/money';
 import { vendorName } from '@/lib/seed';
@@ -47,6 +48,12 @@ export default function ListingTable({
                   <div className="reason" data-testid="listing-rejection-reason">
                     <strong>{reasonLabel}</strong> {l.rejectionReason || 'No reason given.'}
                   </div>
+                )}
+                {l.audit?.length > 0 && (
+                  <details className="history">
+                    <summary>History</summary>
+                    <AuditTrail audit={l.audit} />
+                  </details>
                 )}
               </td>
               {actions && <td className="actions">{actions(l)}</td>}
