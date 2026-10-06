@@ -10,7 +10,8 @@ const DEV_SWITCHER = process.env.NEXT_PUBLIC_DEV_SWITCHER === 'true';
 // Buttons, not <select>: the submit form owns the page's only <select>.
 export default function IdentitySwitcher() {
   const { userId, tenantId, role, setUser, setTenant } = useIdentity();
-  const tenantLocked = role === 'ADMIN';
+  // Admins act only in their own store, so other stores aren't shown to them at all.
+  const stores = role === 'ADMIN' ? TENANTS.filter((t) => t.id === tenantId) : TENANTS;
 
   return (
     <div className="switcher">
@@ -33,14 +34,12 @@ export default function IdentitySwitcher() {
       )}
       <div className="switch-group" data-testid="identity-tenant-select" role="group" aria-label="Store">
         <span className="switch-label">Store</span>
-        {TENANTS.map((t) => (
+        {stores.map((t) => (
           <button
             key={t.id}
             type="button"
             className={`chip ${t.id === tenantId ? 'active' : ''}`}
             aria-pressed={t.id === tenantId}
-            disabled={tenantLocked && t.id !== tenantId}
-            title={tenantLocked && t.id !== tenantId ? 'Admins act only in their own store' : undefined}
             data-testid={`identity-tenant-${t.id}`}
             onClick={() => setTenant(t.id)}
           >
