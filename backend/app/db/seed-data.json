@@ -1,0 +1,51 @@
+{
+  "tenants": [
+    {
+      "id": "sunrise-pharmacy",
+      "name": "Sunrise Pharmacy",
+      "domain": "sunrise.example.com",
+      "allowedCategories": ["RX", "OTC", "DME", "WELLNESS"]
+    },
+    {
+      "id": "vitalcare",
+      "name": "VitalCare",
+      "domain": "vitalcare.example.com",
+      "allowedCategories": ["OTC", "DME", "WELLNESS"]
+    }
+  ],
+  "vendors": [
+    {
+      "id": "vendor-a",
+      "name": "Vendor A",
+      "pharmacyLicenseExpiresAt": "2028-12-31T23:59:59Z",
+      "dmeCredentialExpiresAt": null
+    },
+    {
+      "id": "vendor-b",
+      "name": "Vendor B",
+      "pharmacyLicenseExpiresAt": null,
+      "dmeCredentialExpiresAt": "2028-12-31T23:59:59Z"
+    },
+    {
+      "id": "vendor-c",
+      "name": "Vendor C",
+      "pharmacyLicenseExpiresAt": null,
+      "dmeCredentialExpiresAt": "2025-06-30T23:59:59Z"
+    }
+  ],
+  "products": [
+    { "sku": "RX-100", "name": "Atorvastatin 20mg, 30 tabs", "category": "RX" },
+    { "sku": "OTC-200", "name": "Loratadine 10mg, 30 tabs", "category": "OTC" },
+    { "sku": "DME-300", "name": "Digital BP monitor", "category": "DME" },
+    { "sku": "DME-301", "name": "Nebulizer kit", "category": "DME" },
+    { "sku": "WEL-400", "name": "Vitamin D3 2000 IU", "category": "WELLNESS" }
+  ],
+  "users": [
+    { "id": "vendor-a-user", "role": "VENDOR", "vendorId": "vendor-a" },
+    { "id": "vendor-b-user", "role": "VENDOR", "vendorId": "vendor-b" },
+    { "id": "vendor-c-user", "role": "VENDOR", "vendorId": "vendor-c" },
+    { "id": "admin-sunrise", "role": "ADMIN", "tenantId": "sunrise-pharmacy" },
+    { "id": "admin-vitalcare", "role": "ADMIN", "tenantId": "vitalcare" }
+  ],
+  "listings": []
+}
