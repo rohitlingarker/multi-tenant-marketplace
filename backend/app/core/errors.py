@@ -46,6 +46,20 @@ class ProductNotFound(DomainError):
         super().__init__(f"No product with SKU {sku}.")
 
 
+class ListingNotFound(DomainError):
+    code = "NOT_FOUND"
+
+    def __init__(self, listing_id: str):
+        super().__init__(f"No listing {listing_id} in this store.")
+
+
+class InvalidStatusTransition(DomainError):
+    code = "INVALID_STATUS_TRANSITION"
+
+    def __init__(self, current: str, target: str):
+        super().__init__(f"Cannot move a listing from {current} to {target}.")
+
+
 class ComplianceError(DomainError):
     """Raised with one of the compliance codes (CATEGORY_NOT_ALLOWED, PRICE_INVALID, ...)."""
 
