@@ -23,7 +23,7 @@ export const USERS: { id: string; label: string; role: Role; tenantId?: string }
   { id: 'admin-vitalcare', label: 'Admin VitalCare', role: 'ADMIN', tenantId: 'vitalcare' },
 ];
 
-export const DEFAULT_IDENTITY: Identity = { userId: null, tenantId: 'sunrise-pharmacy' };
+export const DEFAULT_IDENTITY: Identity = { userId: null, tenantId: 'sunrise-pharmacy', role: null };
 
 export function roleOf(userId: string | null): Role | null {
   return USERS.find((u) => u.id === userId)?.role ?? null;

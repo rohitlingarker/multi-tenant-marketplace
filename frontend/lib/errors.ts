@@ -10,6 +10,9 @@ const FALLBACK: Record<string, string> = {
   REJECTION_REASON_REQUIRED: 'Please give a reason when rejecting a listing.',
   FORBIDDEN: "You don't have permission to do that here.",
   NOT_FOUND: "We couldn't find that listing in this store.",
+  UNAUTHENTICATED: 'Your session has expired. Please log in again.',
+  TENANT_NOT_RESOLVED: "We couldn't tell which store this is. Pick a store in the header.",
+  PRODUCT_NOT_FOUND: "That product isn't in the catalog.",
   INVALID_CREDENTIALS: 'Invalid username or password.',
   NETWORK_ERROR: "Can't reach the server. Is the backend running on port 8000?",
 };

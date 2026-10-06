@@ -2,10 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { DEFAULT_IDENTITY, USERS, roleOf } from './seed';
-import type { Identity, LoginUser, Role } from './types';
+import type { Identity, LoginUser } from './types';
 
 interface IdentityCtx extends Identity {
-  role: Role | null;
   ready: boolean;
   /** Bumps on every identity change so screens can drop stale tenant data and refetch. */
   version: number;
@@ -24,6 +23,8 @@ function persist(identity: Identity) {
   try {
     if (identity.userId) localStorage.setItem('userId', identity.userId);
     else localStorage.removeItem('userId');
+    if (identity.role) localStorage.setItem('role', identity.role);
+    else localStorage.removeItem('role');
     localStorage.setItem('tenantId', identity.tenantId);
   } catch {
     /* storage blocked: state still works for this tab */
@@ -37,9 +38,13 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
+      const userId = localStorage.getItem('userId') || null;
+      const stored = localStorage.getItem('role');
       setIdentity({
-        userId: localStorage.getItem('userId') || null,
+        userId,
         tenantId: localStorage.getItem('tenantId') || DEFAULT_IDENTITY.tenantId,
+        // Sessions saved before the role was persisted fall back to the seed lookup.
+        role: stored === 'VENDOR' || stored === 'ADMIN' ? stored : roleOf(userId),
       });
     } catch {
       /* keep defaults */
@@ -56,24 +61,27 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     (user: LoginUser) => {
       // Admins belong to one tenant; vendors are global and keep the store they were browsing.
-      apply({ userId: user.id, tenantId: user.tenantId ?? identity.tenantId });
+      apply({ userId: user.id, tenantId: user.tenantId ?? identity.tenantId, role: user.role });
     },
     [apply, identity.tenantId],
   );
 
-  const logout = useCallback(() => apply({ userId: null, tenantId: identity.tenantId }), [apply, identity.tenantId]);
+  const logout = useCallback(
+    () => apply({ userId: null, tenantId: identity.tenantId, role: null }),
+    [apply, identity.tenantId],
+  );
 
   const setUser = useCallback(
     (userId: string) => {
       const adminTenant = USERS.find((u) => u.id === userId)?.tenantId;
-      apply({ userId, tenantId: adminTenant ?? identity.tenantId });
+      apply({ userId, tenantId: adminTenant ?? identity.tenantId, role: roleOf(userId) });
     },
     [apply, identity.tenantId],
   );
 
   const setTenant = useCallback(
     (tenantId: string) => {
-      if (roleOf(identity.userId) === 'ADMIN') return;
+      if (identity.role === 'ADMIN') return;
       apply({ ...identity, tenantId });
     },
     [apply, identity],
@@ -81,7 +89,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ ...identity, role: roleOf(identity.userId), ready, version, login, logout, setUser, setTenant }}
+      value={{ ...identity, ready, version, login, logout, setUser, setTenant }}
     >
       {children}
     </Ctx.Provider>
